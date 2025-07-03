@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>JARVIS - AI Assistant</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="JARVIS">
+    <meta name="theme-color" content="#00d4ff">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiSkFSVklTIC0gQUkgQXNzaXN0YW50Iiwic2hvcnRfbmFtZSI6IkpBUlZJUyIsImRlc2NyaXB0aW9uIjoiSXJvbiBNYW4gaW5zcGlyZWQgQUkgYXNzaXN0YW50Iiwic3RhcnRfdXJsIjoiLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBhMGEiLCJ0aGVtZV9jb2xvciI6IiMwMGQ0ZmYiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9wbmc7YmFzZTY0LGlWQk9SdzBLR2dvQUFBQU5TVWhFVWdBQUFHQUFBQUJnQ0FZQUFBQ0ctVzNWQUFBQUJITkNTVlFJQ0FnSWZBaGtpQUFBQUFsVUVsRVFWUjRBZTJkTVFnQUFBQ0JKUkVGVWVOcnQyRGNOQUFBQUFBUUpNLzNNV0ltWjQyUDNCM0JsVXdBQUFBQkpSVTVFcmtKZ2dnPT0iLCJzaXplcyI6Ijk2eDk2IiwidHlwZSI6ImltYWdlL3BuZyJ9XX0=">
+    
+    <!-- Touch Icons -->
+    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00d4ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #00d4ff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00d4ff;
+            text-shadow: 0 0 20px #00d4ff;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00d4ff; }
+            to { text-shadow: 0 0 30px #00d4ff, 0 0 40px #00d4ff; }
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .chat-container {
+            max-width: 100%;
+            margin: 0 auto;
+            height: 50vh;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #00d4ff;
+            border-radius: 15px;
+            padding: 15px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            max-width: 85%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .message.user {
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00d4ff;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.assistant {
+            background: rgba(0, 100, 200, 0.2);
+            border: 1px solid #66b3ff;
+            margin-right: auto;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-section {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-top: 1px solid #00d4ff;
+        }
+
+        .voice-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .voice-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .voice-btn:active {
+            transform: scale(0.95);
+        }
+
+        .voice-btn.listening {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .voice-status {
+            flex: 1;
+            color: #66b3ff;
+            font-size: 0.9rem;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 50, 100, 0.2);
+            border: 2px solid #00d4ff;
+            border-radius: 25px;
+            color: #00d4ff;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        .text-input::placeholder {
+            color: #66b3ff;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            padding: 12px 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+            background: rgba(0, 212, 255, 0.4);
+        }
+
+        .action-btn .icon {
+            font-size: 1.2rem;
+        }
+
+        .typing-indicator {
+            display: none;
+            color: #00d4ff;
+            opacity: 0.7;
+            font-style: italic;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 0.7; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .circuit-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.05;
+            background-image: 
+                radial-gradient(circle at 20% 20%, #00d4ff 1px, transparent 1px),
+                radial-gradient(circle at 80% 80%, #00d4ff 1px, transparent 1px);
+            background-size: 30px 30px;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .system-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #66b3ff;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+            animation: pulse 2s infinite;
+        }
+
+        /* iOS specific styles */
+        @supports (-webkit-touch-callout: none) {
+            .app-container {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+
+        /* Haptic feedback styles */
+        .haptic-feedback {
+            transition: all 0.1s ease;
+        }
+
+        .haptic-feedback:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+    <div class="circuit-bg"></div>
+    
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">J.A.R.V.I.S.</div>
+        </div>
+
+        <div class="status-bar">
+            <div class="system-info">
+                <span>AI Online</span>
+                <span id="currentTime"></span>
+            </div>
+            <div class="connection-status">
+                <div class="status-dot"></div>
+                <span>Connected</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="chat-container" id="chatContainer">
+                <div class="message assistant">
+                    <strong>JARVIS:</strong> Good day! I am your AI assistant. How may I assist you today?
+                </div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <div class="voice-control">
+                <button class="voice-btn haptic-feedback" id="voiceBtn">
+                    <span id="voiceIcon">🎤</span>
+                </button>
+                <div class="voice-status">
+                    <div id="voiceStatus">Tap to speak</div>
+                    <div class="typing-indicator" id="typingIndicator">JARVIS is thinking...</div>
+                </div>
+            </div>
+
+            <input type="text" class="text-input" id="textInput" placeholder="Type your message...">
+
+            <div class="quick-actions">
+                <button class="action-btn haptic-feedback" onclick="executeCommand('time')">
+                    <span class="icon">🕐</span>
+                    <span>Time</span>
+                </button>
+                <button class="action-btn haptic-feedback" onclick="executeCommand('weather')">
+                    <span class="icon">🌤️</span>
+                    <span>Weather</span>
+                </button>
+                <button class="action-btn haptic-feedback" onclick="executeCommand('news')">
+                    <span class="icon">📰</span>
+                    <span>News</span>
+                </button>
+                <button class="action-btn haptic-feedback" onclick="executeCommand('reminder')">
+                    <span class="icon">⏰</span>
+                    <span>Reminder</span>
+                </button>
+                <button class="action-btn haptic-feedback" onclick="executeCommand('calculate')">
+                    <span class="icon">🔢</span>
+                    <span>Calculator</span>
+                </button>
+                <button class="action-btn haptic-feedback" onclick="executeCommand('joke')">
+                    <span class="icon">😄</span>
+                    <span>Joke</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class JarvisMobile {
+            constructor() {
+                this.isListening = false;
+                this.recognition = null;
+                this.synthesis = window.speechSynthesis;
+                this.responses = {
+                    time: () => `The current time is ${new Date().toLocaleTimeString()}`,
+                    weather: () => 'The weather is sunny with a temperature of 72°F. Perfect conditions for today.',
+                    news: () => 'Accessing latest news feeds... Technology advances continue to reshape our world.',
+                    reminder: () => 'What would you like me to remind you about?',
+                    calculate: () => 'Calculator activated. Please state your mathematical expression.',
+                    joke: () => 'Why don\'t scientists trust atoms? Because they make up everything!',
+                    hello: () => 'Hello! How can I assist you today?',
+                    help: () => 'I can help you with time, weather, news, reminders, calculations, and more. Just ask!',
+                    default: () => 'I\'m processing your request. Please be more specific about what you need.'
+                };
+                
+                this.initializeApp();
+            }
+
+            initializeApp() {
+                this.initializeVoiceRecognition();
+                this.initializeEventListeners();
+                this.updateTime();
+                this.registerServiceWorker();
+                
+                // iOS specific setup
+                if (this.isIOS()) {
+                    this.setupIOSFeatures();
+                }
+            }
+
+            initializeVoiceRecognition() {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = false;
+                    this.recognition.lang = 'en-US';
+                    
+                    this.recognition.onstart = () => {
+                        this.isListening = true;
+                        document.getElementById('voiceBtn').classList.add('listening');
+                        document.getElementById('voiceIcon').textContent = '🔴';
+                        document.getElementById('voiceStatus').textContent = 'Listening...';
+                        this.hapticFeedback();
+                    };
+                    
+                    this.recognition.onend = () => {
+                        this.isListening = false;
+                        document.getElementById('voiceBtn').classList.remove('listening');
+                        document.getElementById('voiceIcon').textContent = '🎤';
+                        document.getElementById('voiceStatus').textContent = 'Tap to speak';
+                    };
+                    
+                    this.recognition.onresult = (event) => {
+                        const command = event.results[0][0].transcript;
+                        this.processCommand(command, 'voice');
+                    };
+                    
+                    this.recognition.onerror = (event) => {
+                        console.error('Speech recognition error:', event.error);
+                        this.displayMessage('Speech recognition error. Please try again.', 'assistant');
+                    };
+                } else {
+                    this.displayMessage('Voice recognition not supported in this browser.', 'assistant');
+                }
+            }
+
+            initializeEventListeners() {
+                document.getElementById('voiceBtn').addEventListener('click', () => {
+                    if (this.isListening) {
+                        this.recognition.stop();
+                    } else {
+                        this.recognition.start();
+                    }
+                });
+
+                document.getElementById('textInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const command = e.target.value.trim();
+                        if (command) {
+                            this.processCommand(command, 'text');
+                            e.target.value = '';
+                        }
+                    }
+                });
+
+                // Prevent zoom on double tap
+                document.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 1) {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            processCommand(command, source) {
+                this.displayMessage(command, 'user');
+                this.showTypingIndicator();
+                
+                const lowerCommand = command.toLowerCase();
+                let response = this.responses.default();
+                
+                // Find matching response
+                for (const [key, func] of Object.entries(this.responses)) {
+                    if (lowerCommand.includes(key)) {
+                        response = func();
+                        break;
+                    }
+                }
+                
+                // Special handling for calculations
+                if (lowerCommand.includes('calculate') || lowerCommand.includes('math') || /\d+[\+\-\*\/]\d+/.test(command)) {
+                    try {
+                        const mathExpression = command.match(/\d+[\+\-\*\/]\d+/);
+                        if (mathExpression) {
+                            const result = eval(mathExpression[0]);
+                            response = `The result is ${result}`;
+                        }
+                    } catch (e) {
+                        response = 'I couldn\'t process that calculation. Please try again.';
+                    }
+                }
+                
+                setTimeout(() => {
+                    this.hideTypingIndicator();
+                    this.displayMessage(response, 'assistant');
+                    if (source === 'voice') {
+                        this.speak(response);
+                    }
+                    this.hapticFeedback();
+                }, 1500);
+            }
+
+            displayMessage(message, sender) {
+                const chatContainer = document.getElementById('chatContainer');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                if (sender === 'assistant') {
+                    messageDiv.innerHTML = `<strong>JARVIS:</strong> ${message}`;
+                } else {
+                    messageDiv.textContent = message;
+                }
+                
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            showTypingIndicator() {
+                document.getElementById('typingIndicator').style.display = 'block';
+                document.getElementById('voiceStatus').style.display = 'none';
+            }
+
+            hideTypingIndicator() {
+                document.getElementById('typingIndicator').style.display = 'none';
+                document.getElementById('voiceStatus').style.display = 'block';
+            }
+
+            speak(text) {
+                if (this.synthesis) {
+                    this.synthesis.cancel(); // Stop any ongoing speech
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1.1;
+                    utterance.volume = 0.8;
+                    this.synthesis.speak(utterance);
+                }
+            }
+
+            updateTime() {
+                const updateClock = () => {
+                    const now = new Date();
+                    document.getElementById('currentTime').textContent = now.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                };
+                
+                updateClock();
+                setInterval(updateClock, 1000);
+            }
+
+            hapticFeedback() {
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }
+
+            isIOS() {
+                return /iPad|iPhone|iPod/.test(navigator.userAgent);
+            }
+
+            setupIOSFeatures() {
+                // Add iOS-specific styling
+                document.body.style.paddingTop = 'env(safe-area-inset-top)';
+                document.body.style.paddingBottom = 'env(safe-area-inset-bottom)';
+                
+                // Prevent rubber band scrolling
+                document.body.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+                
+                // Allow scrolling in chat container
+                document.getElementById('chatContainer').addEventListener('touchmove', (e) => {
+                    e.stopPropagation();
+                }, { passive: true });
+            }
+
+            registerServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCJmZXRjaCIsIGZ1bmN0aW9uKGV2ZW50KSB7CiAgICBldmVudC5yZXNwb25kV2l0aChmZXRjaChjdmVudC5yZXF1ZXN0KSk7Cn0pOw==')
+                        .then((registration) => {
+                            console.log('Service Worker registered');
+                        })
+                        .catch((error) => {
+                            console.log('Service Worker registration failed');
+                        });
+                }
+            }
+        }
+
+        // Global function for quick commands
+        function executeCommand(command) {
+            jarvis.processCommand(command, 'button');
+        }
+
+        // Initialize JARVIS Mobile when page loads
+        let jarvis;
+        document.addEventListener('DOMContentLoaded', () => {
+            jarvis = new JarvisMobile();
+        });
+
+        // Prevent default iOS behaviors
+        document.addEventListener('touchstart', (e) => {
+            const target = e.target;
+            if (!target.matches('input, textarea, button, .action-btn, .voice-btn')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
